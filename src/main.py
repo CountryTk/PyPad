@@ -1,29 +1,23 @@
-import sys
-import os
-from find_all import find_all
-import keyword
-from PyQt5.QtCore import Qt, QRect, QRegExp, QDir, QThread, pyqtSignal, QObject, QProcess, pyqtSlot, QPoint
-from PyQt5.QtGui import QColor, QPainter, QPalette, QSyntaxHighlighter, QFont, QTextCharFormat, QIcon, QTextOption,\
-    QPixmap, QKeySequence, QTextCursor
-from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QAction, \
-    QVBoxLayout, QTabWidget, QFileDialog, QPlainTextEdit, QHBoxLayout, qApp, QTreeView, QFileSystemModel,\
-    QSplitter, QLabel, QComboBox, QPushButton, QShortcut, QCompleter, QLineEdit, QInputDialog
-import platform
-from qtconsole.rich_jupyter_widget import RichJupyterWidget
-from qtconsole.inprocess import QtInProcessKernelManager
-import random
-import getpass
-from predictionList import wordList
-from search_algorithm import tokenize
-from find_all_files import documentSearch
-from checkVer import checkVersion
-from checkVerOnline import checkVerOnlineFunc
-#from updatePyPad import updatePyPadFunc
-import socket
-import config
-import webbrowser
-from TerminalBarWidget import TerminalBar
-import shutil
+try:
+    import sys, os, platform, random, getpass, socket, config, webbrowser, shutil, keyword
+    from find_all import find_all
+    from PyQt5.QtCore import Qt, QRect, QRegExp, QDir, QThread, pyqtSignal, QObject, QProcess, pyqtSlot, QPoint
+    from PyQt5.QtGui import QColor, QPainter, QPalette, QSyntaxHighlighter, QFont, QTextCharFormat, QIcon, QTextOption,\
+        QPixmap, QKeySequence, QTextCursor
+    from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QAction, \
+        QVBoxLayout, QTabWidget, QFileDialog, QPlainTextEdit, QHBoxLayout, qApp, QTreeView, QFileSystemModel,\
+        QSplitter, QLabel, QComboBox, QPushButton, QShortcut, QCompleter, QLineEdit, QInputDialog
+    from qtconsole.rich_jupyter_widget import RichJupyterWidget
+    from qtconsole.inprocess import QtInProcessKernelManager
+    from predictionList import wordList
+    from search_algorithm import tokenize
+    from find_all_files import documentSearch
+    from checkVer import checkVersion
+    from checkVerOnline import checkVerOnlineFunc
+    #from updatePyPad import updatePyPadFunc
+    from TerminalBarWidget import TerminalBar
+except (ImportError, ModuleNotFoundError) as porterr:
+    print(porterr.name + "\n" + porterr.path + "\n" + porterr.message)
 
 config0 = config.read(0)
 config1 = config.read(1)
@@ -370,9 +364,12 @@ class ConsoleWidget(RichJupyterWidget, QThread):
         kernel_client.start_channels()
 
         def stop():
-            kernel_client.stop_channels()
-            kernel_manager.shutdown_kernel()
-            sys.exit()
+            try:
+                kernel_client.stop_channels()
+                kernel_manager.shutdown_kernel()
+                sys.exit()
+            except SystemExit as exiterr:
+                print(exiterr)
 
         self.exit_requested.connect(stop)
 
@@ -529,16 +526,13 @@ class MessageBox(QWidget, QObject):
             try:
                 folderName = self.textField.text()
                 directory = self.ProjectDirectory.text()
-                
                 if not os.path.exists(folderName):
                     path = str(directory) + str(folderName)
                     os.makedirs(path)
                     self.hide()
                     self.success(path)
-                    
                 else:
                     print("File already exists")
-                    
             except Exception as E:
                 print(E)
                 
@@ -1527,23 +1521,23 @@ class Main(QMainWindow):
             print("File dialog closed")
 
     def Console(self):
-
-        self.pyConsoleOpened = True
-        self.ind = self.tab.splitterV.indexOf(self.tab.term)
-
-        self.o = self.tab.splitterV.indexOf(self.tab.Console)
-
-        if self.tab.splitterV.indexOf(self.tab.Console) == -1:  # If the Console widget DOESNT EXIST YET!
-
-            self.tab.splitterV.addWidget(self.tab.term)
-
+        try:
+            self.pyConsoleOpened = True
             self.ind = self.tab.splitterV.indexOf(self.tab.term)
 
-        if self.tab.splitterV.indexOf(self.tab.term) == -1:  # If the terminal widget doesnt exist yet
-            self.tab.splitterV.replaceWidget(self.o, self.tab.term)
             self.o = self.tab.splitterV.indexOf(self.tab.Console)
 
-            self.ind = self.tab.splitterV.indexOf(self.tab.term)
+            if self.tab.splitterV.indexOf(self.tab.Console) == -1:  # If the Console widget DOESNT EXIST YET!
+                self.tab.splitterV.addWidget(self.tab.term)
+                self.ind = self.tab.splitterV.indexOf(self.tab.term)
+
+            if self.tab.splitterV.indexOf(self.tab.term) == -1:  # If the terminal widget doesnt exist yet
+                self.tab.splitterV.replaceWidget(self.o, self.tab.term)
+                self.o = self.tab.splitterV.indexOf(self.tab.Console)
+
+                self.ind = self.tab.splitterV.indexOf(self.tab.term)
+        except (IndexError, TypeError) as inderr:
+                print(inderr)
 
     def Terminal(self):
 
@@ -1771,7 +1765,7 @@ class CHighlighter(QSyntaxHighlighter):
 
 
 if __name__ == '__main__':
-    if True: # checkVersion("version.txt") != checkVerOnlineFunc():
+    if True:  # checkVersion("version.txt") != checkVerOnlineFunc():
         pass  # TODO: implement an updater
     else:
         print("Up to date")
